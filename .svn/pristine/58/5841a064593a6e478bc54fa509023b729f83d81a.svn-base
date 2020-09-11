@@ -1,0 +1,178 @@
+package mx.com.fincomun.vendedores.util;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import mx.com.fincomun.vendedores.bean.response.Response;
+
+public class Util {
+        public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	
+	private static Logger log = Logger.getLogger(Util.class);
+	
+	private static  SimpleDateFormat dateFormat;
+	
+	public static boolean isEmail(String text){
+		boolean isValid = false;
+		if(text.matches("^([_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(\\.[a-zA-Z]{1,6}))?$"))
+			isValid = true;
+		return isValid;
+	}
+	
+	public static String getFechaYYYYMMDD(Date date){
+		dateFormat=new SimpleDateFormat("yyyyMMdd");
+		return dateFormat.format(date);
+	}
+	
+	public static String getFechaDDMMYY(Date date){
+		dateFormat = new SimpleDateFormat("dd-MM-yy"); 
+		return dateFormat.format(date);
+	}
+	
+	public static String getFechaDDMESYYYY(String text){
+		String fechaFormat = "";
+		if(text != null && text.trim().length() > 0){
+			String[] fechaArray = text.split("-");
+			String mes = mesText(Integer.parseInt(fechaArray[1]));
+			
+			fechaFormat = fechaArray[0]+" "+mes+" "+fechaArray[2];
+		}
+		return fechaFormat;
+	}
+	
+	private static String mesText(int mes){
+		String mesText = "";
+		switch (mes) {
+			case 1: mesText = "Enero"; break;
+			case 2: mesText = "Febrero"; break;
+			case 3: mesText = "Marzo"; break;
+			case 4: mesText = "Abril"; break;
+			case 5: mesText = "Mayo"; break;
+			case 6: mesText = "Junio"; break;
+			case 7: mesText = "Julio"; break;
+			case 8: mesText = "Agosto"; break;
+			case 9: mesText = "Septiembre"; break;
+			case 10: mesText = "Octubre"; break;
+			case 11: mesText = "Noviembre"; break;
+			case 12: mesText = "Diciembre"; break;
+		}
+		return mesText;
+	}
+	
+	public static String getFechaInicioMes(int mes){
+		dateFormat = new SimpleDateFormat("dd-MM-yy");  
+		mes = mes -1;
+		Calendar calendar = Calendar.getInstance(); 
+		calendar.set(Calendar.MONTH, mes);
+		calendar.set(Calendar.DAY_OF_MONTH,1);
+		return dateFormat.format(calendar.getTime());
+	}
+	
+	
+	public static String getFechaFinMes(int mes){
+		dateFormat = new SimpleDateFormat("dd-MM-yy");  
+		mes = mes -1;
+		Calendar calendar = Calendar.getInstance(); 
+		int ultimoDiaMes = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+		calendar.set(Calendar.MONTH, mes);
+		calendar.set(Calendar.DAY_OF_MONTH,ultimoDiaMes);
+		return dateFormat.format(calendar.getTime());
+	}
+	
+	public static String getFechaFinMesActual(){
+		dateFormat = new SimpleDateFormat("dd-MM-yy");  
+		Calendar calendar = Calendar.getInstance(); 
+		int ultimoDiaMes = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+		calendar.set(Calendar.DAY_OF_MONTH,ultimoDiaMes);
+		return dateFormat.format(calendar.getTime());
+	}
+	
+	public static boolean validateFormatoDate(String text){
+		boolean isValid = false;
+		if(text.matches("^([0-2][0-9]|(3)[0-1])(\\/)(((0)[0-9])|((1)[0-2]))(\\/)\\d{4}$"))
+			isValid = true;
+		return isValid;
+	}
+	
+	public static String cifrarBase64(String text){
+		byte[] bytesEncoded = Base64.encodeBase64(text.getBytes());
+		return new String(bytesEncoded);
+    }
+    
+    public static String descifrarBase64(String text){
+    	byte[] valueDecoded = Base64.decodeBase64(text.getBytes());
+    	return new String(valueDecoded);
+    }
+    
+	public static long convertStringToLong(String text){
+		Long textLong = Long.parseLong(text);
+		return textLong;
+	}
+	
+	public static String converObjectToJson(Response response){
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonInString = null;
+		try {
+			jsonInString = mapper.writeValueAsString(response);
+		} catch (JsonProcessingException e) {
+			log.error("Error al convertir a JSON..."+response);
+		}
+		return jsonInString;
+	}
+	
+	public static String getNumCuenta(String ctaClabe){
+		String numCuenta = null;
+		numCuenta = ctaClabe.substring(6, ctaClabe.length()-1);
+		numCuenta += "0";
+		return numCuenta;
+	}
+	
+	public static String getResponse(Response response){
+		//String jsonString = JSONValue.escape(Util.converObjectToJson(response));
+		return getEncrypt(Util.converObjectToJson(response));
+	}
+	
+	public static String getEncrypt(String jsonString){
+		String responseEncrypt = null;
+		log.info("Response: ["+jsonString+"]");
+		try {
+			responseEncrypt = StringEncrypt.encrypt(Constantes.PASSWORD_KEY, Constantes.PASSWORD_IV, jsonString);
+			log.info("ResponseEnrypt: ["+responseEncrypt+"]");
+		} catch (Exception e) {
+			log.error("Ocurrio un error al encriptar response: "+e.getCause());
+		}
+		return responseEncrypt;
+	}
+	
+	public static void main(String...strings){
+		
+//		String text = "cadena a cifrar...";
+//		
+//		String textCifrada = cifrarBase64(text);
+//		System.out.println("Texto Cifrado: ["+textCifrada+"]");
+//		
+//		String textDescifrado = descifrarBase64(textCifrada);
+//		System.out.println("Texto Descifrado: ["+textDescifrado+"]");
+		
+		
+		try {
+			String encrypt = StringEncrypt.encrypt("FINCOMUN07052019", "07052019FINCOMUN", "{\"idTipoPago\":1,\"idUsuario\":221,\"idVendedor\":17,\"montoTotal\":10.0}");
+			System.out.println("Encrypt: ["+encrypt+"]");
+			
+			String decrypt = StringEncrypt.decrypt("FINCOMUN07052019", "07052019FINCOMUN", "5K30vQCNydNYk9UWrRsgGICMOxbh2pPslOKky9hvHGmmMVrJftLNE9Wzm4vYEfktiWDt0n/vamx5SQOY253fuRgkKIBQ+BWmblciSvZxxwIguyT58XLNz63kkuHRhBZ6sHnaC4ng1dC1GglaW7yRMUg0YIGoTtF/gaGfVZwaaG2K7vrz4f0KeojEYeWKbSupV+q7+TK74NCMkSuHx5VXJg==");
+			System.out.println("Decrypt: ["+decrypt+"]");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+}

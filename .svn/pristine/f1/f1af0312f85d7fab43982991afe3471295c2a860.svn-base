@@ -1,0 +1,67 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package mx.com.fincomun.vendedores.bean;
+
+import com.google.gson.Gson;
+import static mx.com.fincomun.vendedores.util.Util.gson;
+
+/**
+ *
+ * @author desarrollo5
+ */
+public class EnvioSMSBean {
+    private String token;
+    private String nombre;
+    private String fecha;
+    private double total;
+    private String celular;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(String fecha) {
+        this.fecha = fecha;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
+    public String getCelular() {
+        return celular;
+    }
+
+    public void setCelular(String celular) {
+        this.celular = celular;
+    }
+    
+    @Override
+    public String toString(){
+        return gson.toJson(this);
+    }
+    
+}
